@@ -7,6 +7,32 @@
     "url": "https://github.com/bmuller/climate-cli.git",
     "type": "git"
   },
-  "author": "Nathan Herald, Brian Muller",
-  "license": "MIT"
+  "devDependencies": {
+    "standard": "^7.0.0",
+    "tape": "^4.4.0"
+  },
+  "dependencies": {
+    "debug": "^2.2.0"
+  },
+  "bin": {
+    "climate": "./bin/cmd.js"
+  },
+  "scripts": {
+    "test": "standard && tape test/*.js"
+  },  
+  "author": {
+    "name": "Brian Muller",
+    "url": "http://findingscience.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "cloud",
+    "climate",
+    "development",
+    "hosting"
+  ],
+  "bugs": {
+    "url": "https://github.com/bmuller/climate-cli/issues"
+  },
+  "homepage": "https://github.com/bmuller/climate-cli"
 }

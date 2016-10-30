@@ -1,0 +1,12 @@
+{
+  "name": "climate-cli",
+  "version": "0.0.1",
+  "description": "Command-line interface to climate",
+  "main": "index.js",
+  "repository": {
+    "url": "https://github.com/bmuller/climate-cli.git",
+    "type": "git"
+  },
+  "author": "Nathan Herald, Brian Muller",
+  "license": "MIT"
+}

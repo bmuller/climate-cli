@@ -20,3 +20,10 @@ npm install -g climate-cli
 ```
 climate --help
 ```
+
+### Command Line Todo
+
+* init: Create directory structure
+* serve [<environment>]: Run local server
+* publish [<environment>]: Update server config
+* flushdb [<environment>]: Clear all data stored for the given environment

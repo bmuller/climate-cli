@@ -12,14 +12,18 @@
     "tape": "^4.4.0"
   },
   "dependencies": {
-    "debug": "^2.2.0"
+    "body-parser": "^1.15.2",
+    "commander": "^2.9.0",
+    "compression": "^1.6.2",
+    "debug": "^2.2.0",
+    "express": "^4.14.0"
   },
   "bin": {
     "climate": "./bin/cmd.js"
   },
   "scripts": {
     "test": "standard && tape test/*.js"
-  },  
+  },
   "author": {
     "name": "Brian Muller",
     "url": "http://findingscience.com"

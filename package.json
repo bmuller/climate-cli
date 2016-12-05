@@ -8,15 +8,19 @@
     "type": "git"
   },
   "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+    "babel-register": "^6.18.0",
     "standard": "^7.0.0",
     "tape": "^4.4.0"
   },
   "dependencies": {
+    "bel": "^4.5.0",
     "body-parser": "^1.15.2",
     "commander": "^2.9.0",
     "compression": "^1.6.2",
     "debug": "^2.2.0",
-    "express": "^4.14.0"
+    "express": "^4.14.0",
+    "markdown": "^0.5.0"
   },
   "bin": {
     "climate": "./bin/cmd.js"

@@ -1,0 +1,11 @@
+{
+  "type": "object-store",
+  "name": "folders",
+  "key_path": "id",
+  "auto_increment": false,
+  "indexes": [{
+    "primary_key": true,
+    "name": "id",
+    "url": "https://api.climate.build/object-stores/folders/indexes/id"
+  }]
+}

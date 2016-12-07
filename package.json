@@ -8,21 +8,30 @@
     "type": "git"
   },
   "devDependencies": {
-    "standard": "^7.0.0",
+    "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+    "babel-register": "^6.18.0",
+    "standard": "^8.4.0",
     "tape": "^4.4.0"
   },
   "dependencies": {
+    "bel": "^4.5.0",
     "body-parser": "^1.15.2",
     "commander": "^2.9.0",
     "compression": "^1.6.2",
     "debug": "^2.2.0",
-    "express": "^4.14.0"
+    "express": "^4.14.0",
+    "markdown": "^0.5.0",
+    "sqlite3": "^3.1.8"
   },
   "bin": {
     "climate": "./bin/cmd.js"
   },
   "scripts": {
-    "test": "standard && tape test/*.js"
+    "lint": "standard -v `git ls-files *.js`",
+    "test": "npm run lint && tape test/*.js",
+    "doc": "node -r babel-register doc/index.js",
+    "serve": "node -r babel-register serve.js"
   },
   "author": {
     "name": "Brian Muller",

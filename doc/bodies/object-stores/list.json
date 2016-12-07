@@ -1,0 +1,25 @@
+[{
+  "type": "object-store",
+  "name": "folders",
+  "key_path": "id",
+  "auto_increment": false,
+  "indexes": [{
+    "primary_key": true,
+    "name": "id",
+    "url": "https://api.climate.build/object-stores/folders/indexes/id"
+  }]
+}, {
+  "type": "object-store",
+  "name": "entries",
+  "key_path": "id",
+  "auto_increment": false,
+  "indexes": [{
+    "primary_key": true,
+    "name": "id",
+    "url": "https://api.climate.build/object-stores/folders/indexes/id"
+  }, {
+    "primary_key": false,
+    "name": "folderId",
+    "url": "https://api.climate.build/object-stores/folders/indexes/folderId"
+  }]
+}]

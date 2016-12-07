@@ -28,7 +28,8 @@
     "climate": "./bin/cmd.js"
   },
   "scripts": {
-    "test": "standard && tape test/*.js",
+    "lint": "standard -v `git ls-files *.js`",
+    "test": "npm run lint && tape test/*.js",
     "doc": "node -r babel-register doc/index.js",
     "serve": "node -r babel-register serve.js"
   },

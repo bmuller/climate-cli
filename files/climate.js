@@ -4,8 +4,8 @@
   cli.identity.showLogin()
 */
 
-var Climate = (function() {
-  function Identity(cli) {
+var Climate = (function () {
+  function Identity (cli) {
     this.climate = cli;
     
   }
@@ -14,10 +14,10 @@ var Climate = (function() {
     
   }
   
-  function Climate(appid, domain) {
+  function Climate (appid, domain) {
     this.appid = appid
     this.domain = domain
-    this.identity = Identity(this)
+    this.identity = Identity (this)
   }
 
   return Climate;

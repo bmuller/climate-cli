@@ -35,6 +35,38 @@ export async function indexRecordForIndex (storage, record, index) {
   }
 }
 
+export function changeForRecord (record, sinceGeneration) {
+  let type
+  let data
+
+  if (record.startGeneration === record.generation) {
+    type = 'create'
+    data = record.key
+  } else if (record.deletedAt) {
+    if (record.startGeneration > sinceGeneration) {
+      type = 'null'
+      data = null
+    } else {
+      type = 'delete'
+      data = {}
+    }
+  } else {
+    if (record.startGeneration > sinceGeneration) {
+      type = 'create'
+    } else {
+      type = 'update'
+    }
+    data = record.key
+  }
+
+  return {
+    type,
+    data,
+    recordStoreName: record.recordStoreName,
+    key: record.key
+  }
+}
+
 export function formatRecordStore (store) {
   if (store === undefined) { return store }
 

@@ -202,6 +202,13 @@ export class Storage {
     return records.map(utils.formatRecord)
   }
 
+  async getAllChangesSince (recordStoreName, generation) {
+    const records = await this.getAllRecordsSince(recordStoreName, generation)
+    return records
+      .map(record => utils.changeForRecord(record, generation))
+      .filter(change => change.type !== 'null') // remove noop changes
+  }
+
   async getAllRecordsByIndex (recordStoreName, keyPath, range = KeyRange.any) {
     const index = await this.getIndex(recordStoreName, keyPath)
 

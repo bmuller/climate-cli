@@ -23,7 +23,8 @@
     "debug": "^2.2.0",
     "express": "^4.14.0",
     "markdown": "^0.5.0",
-    "sqlite3": "^3.1.8"
+    "sqlite3": "^3.1.8",
+    "uuid": "^3.0.1"
   },
   "bin": {
     "climate": "./bin/cli.js"
@@ -40,7 +41,9 @@
     "name": "Brian Muller",
     "url": "http://findingscience.com"
   },
-  "files": [ "./files" ],
+  "files": [
+    "./files"
+  ],
   "license": "MIT",
   "keywords": [
     "cloud",

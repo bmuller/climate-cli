@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const program = require('commander')
-const Climate = require('../')
+const Climate = require('../dist').Climate
 const cli = new Climate()
 
 var cmd, opts

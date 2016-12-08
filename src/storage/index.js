@@ -1,5 +1,5 @@
 import { open } from './db'
-import { nullLogger } from '../null-logger'
+import { nullLogger } from '../loggers'
 
 const nameRegexp = /^[a-zA-Z][a-zA-Z0-9-_]+$/
 
@@ -61,6 +61,8 @@ class Storage {
     await this._db.exclusiveLock(async () => {
       const store = await this.getRecordStore(recordStoreName)
 
+      if (!store) { throw new Error(`cannot find store '${recordStoreName}'`) }
+
       const indexId = await this._db.insert('indexes', {
         recordStoreName,
         keyPath,
@@ -70,15 +72,9 @@ class Storage {
 
       index = await this.getIndexById(indexId)
 
-      // Must fill in index from existing records
-
-      await this.eachRecord(store.name, record => indexRecordForIndex(this, record, index))
-
-      // TODO: implement this._db.each instead of loading all into memory
-      // let records = await this.getAllRecords(store.name)
-      //
-      // let promises = records.map(record => indexRecordForIndex(this, record, index))
-      // await Promise.all(promises)
+      let records = await this.getAllRecords(store.name)
+      let promises = records.map(record => indexRecordForIndex(this, record, index))
+      await Promise.all(promises)
     })
 
     return index
@@ -106,6 +102,8 @@ class Storage {
 
     await this._db.exclusiveLock(async () => {
       let store = await this.getRecordStore(recordStoreName)
+
+      if (!store) { throw new Error(`cannot find store '${recordStoreName}'`) }
 
       const generation = store.generation + 1
 
@@ -220,6 +218,7 @@ class Storage {
     return records.map(formatRecord)
   }
 
+  // NOTE: callbacks for eachRecord cannot perform SQL statements - this is a limitation of the sqlite3 library
   eachRecord (recordStoreName, cb) {
     return this._db.each('records', 'WHERE recordStoreName = ?', recordStoreName, _record => {
       const record = formatRecord(_record)
@@ -238,7 +237,7 @@ async function indexRecord (storage, record) {
 async function indexRecordForIndex (storage, record, index) {
   const value = record.data[index.keyPath] // TODO: support nested keys (foo.bar)
 
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     await storage._db.delete('indexedRecords', 'WHERE recordId = ? AND indexId = ?', record.id, index.id)
   } else {
     // TODO: test for uniqueness if isUnique

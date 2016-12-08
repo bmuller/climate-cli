@@ -1,197 +1,257 @@
-import EventEmitter from 'events'
-import test from 'blue-tape'
-import { setupStorage } from '../src/storage'
+import { test } from './helper'
 
-// const _testLogger = {
-//   debug: (...msg) => console.log(...msg),
-//   error: (...msg) => console.error(...msg),
-//   info: (...msg) => console.log(...msg)
-// }
-const testLogger = undefined
-
-const bus = new EventEmitter()
-let storage
-
-test.onFinish(() => storage.close())
-
-test('can create an in-memory database and a bunch of tables', async t => {
-  try {
-    storage = await setupStorage(':memory:', bus, testLogger)
-    t.pass('worked')
-
-    const result = await storage.getAllRecordStores()
-    t.deepEqual(result, [], 'recordStores is there, but empty')
-  } catch (e) {
-    t.fail(`threw up: ${e}`)
-  }
+test('can create an in-memory database and a bunch of tables', ['storage'], async t => {
+  const result = await t.storage.getAllRecordStores()
+  t.deepEqual(result, [], 'recordStores table is there, but empty')
 })
 
-test('recordStores create', async t => {
-  const createdStore = await storage.createRecordStore({ name: 'items', keyPath: 'id' })
-  const fetchedStore = await storage.getRecordStore('items')
+function createItemsStore (storage) {
+  return storage.createRecordStore({ name: 'items', keyPath: 'id' })
+}
+
+test('recordStores create', ['storage'], async t => {
+  const createdStore = await createItemsStore(t.storage)
+  const fetchedStore = await t.storage.getRecordStore('items')
 
   t.deepEqual(createdStore, fetchedStore, 'created and fetched are the same')
 })
 
-test('recordStores all', async t => {
-  const stores = await storage.getAllRecordStores()
+test('recordStores all', ['storage'], async t => {
+  await createItemsStore(t.storage)
+
+  const stores = await t.storage.getAllRecordStores()
 
   t.equal(stores.length, 1, 'there is a record store')
   t.equal(stores[0].name, 'items', 'there is an items store')
 })
 
-test('recordStores get', async t => {
-  const store = await storage.getRecordStore('items')
+test('recordStores get', ['storage'], async t => {
+  await createItemsStore(t.storage)
+
+  const store = await t.storage.getRecordStore('items')
 
   t.equal(store.keyPath, 'id')
   t.equal(store.generation, 1)
 })
 
-test('records create', async t => {
-  const data = {
-    id: '1',
+const testRecords = {
+  dj: {
+    id: 'dj',
     name: 'Khaled',
     shelf: 'top',
     best: true,
     keywords: ['we the best', 'lion']
-  }
-
-  const createdRecord = await storage.createRecord('items', data)
-
-  const fetchedRecord = await storage.getRecord('items', '1')
-
-  t.deepEqual(fetchedRecord.data, data, 'data was persisted')
-  t.deepEqual(createdRecord, fetchedRecord, 'created and fetched are the same')
-})
-
-test('records all', async t => {
-  const records = await storage.getAllRecords('items')
-
-  t.equal(records.length, 1, 'there is a record')
-  t.equal(records[0].data.name, 'Khaled', 'there is a DJ')
-})
-
-test('records alive', async t => {
-  await storage.createRecord('items', {
+  },
+  2: {
     id: '2',
     name: 'Pac',
     shelf: 'top',
     best: true,
     keywords: ['The Message']
-  })
-
-  await storage.markRecordAsDead('items', '2')
-
-  const allRecords = await storage.getAllRecords('items')
-  const aliveRecords = await storage.getAliveRecords('items')
-
-  t.notDeepEqual(allRecords, aliveRecords, 'alive returns a different set of records from all')
-  t.equal(aliveRecords.length, 1, 'one alive record')
-  t.equal(allRecords.length, 2, 'two total records')
-})
-
-test('records all since', async t => {
-  const store = await storage.getRecordStore('items')
-  const startGeneration = store.generation
-
-  const record = await storage.createRecord('items', {
+  },
+  future: {
     id: 'future',
     name: 'The',
     shelf: 'middle',
     best: false
-  })
+  },
+  batman: {
+    id: 'batman',
+    shelf: 'bottom'
+  }
+}
 
-  t.ok(record.generation > startGeneration, 'future record is forward in time')
+function createTestRecord (storage, id) {
+  const data = testRecords[id]
+  return storage.createRecord('items', data)
+}
 
-  const futureRecords = await storage.getAllRecordsSince('items', startGeneration)
-  const allRecords = await storage.getAllRecords('items')
+async function createAllTestRecords (storage) {
+  for (let id in testRecords) {
+    const data = testRecords[id]
+    await storage.createRecord('items', data)
+  }
+}
 
-  t.equal(futureRecords.length, 1)
-  t.equal(allRecords.length, 3)
+test('records create', ['storage'], async t => {
+  await createItemsStore(t.storage)
+
+  const createdRecord = await createTestRecord(t.storage, 'dj')
+  const fetchedRecord = await t.storage.getRecord('items', 'dj')
+
+  t.deepEqual(fetchedRecord.data, testRecords.dj, 'data was persisted')
+  t.deepEqual(createdRecord, fetchedRecord, 'created and fetched are the same')
 })
 
-test('records update', async t => {
-  const record = await storage.createRecord('items', { id: 'mc', name: 'McGovenor', shelf: 'middle' })
-  t.ok(record, 'created a record to update')
+test('records all', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createAllTestRecords(t.storage)
+
+  const records = await t.storage.getAllRecords('items')
+
+  t.equal(records.length, 4, 'there are some records')
+})
+
+test('records alive', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createAllTestRecords(t.storage)
+
+  await t.storage.markRecordAsDead('items', '2')
+
+  const allRecords = await t.storage.getAllRecords('items')
+  const aliveRecords = await t.storage.getAliveRecords('items')
+
+  t.notDeepEqual(allRecords, aliveRecords, 'alive returns a different set of records from all')
+  t.equal(aliveRecords.length, 3, 'one less alive record')
+  t.equal(allRecords.length, 4, 'one more total records')
+})
+
+test('records all since', ['storage'], async t => {
+  // generation starts at 1
+  await createItemsStore(t.storage)
+
+  // start with 1 existing record, generation will now be at 2
+  await createTestRecord(t.storage, 'dj')
+
+  // add a second record, generation will now be at 3
+  const record = await createTestRecord(t.storage, 'future')
+
+  t.equal(record.generation, 3, 'future record is forward in time')
+
+  const futureRecords = await t.storage.getAllRecordsSince('items', 2)
+  const allRecords = await t.storage.getAllRecords('items')
+
+  t.equal(futureRecords.length, 1, 'one record is after 2')
+  t.equal(allRecords.length, 2, 'there are two total records')
+})
+
+test('records each', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createAllTestRecords(t.storage)
+
+  let ids = []
+
+  await t.storage.eachRecord('items', item => {
+    ids.push(item.data.id)
+  })
+
+  t.deepEqual(ids.sort(), ['2', 'batman', 'dj', 'future'], 'ids are correct')
+})
+
+test('records update', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  const record = await createTestRecord(t.storage, 'dj')
 
   const generation = record.generation
 
-  const updatedRecord = await storage.updateRecord('items', { id: 'mc', name: 'McGyver', shelf: 'middle' })
-  t.ok(updatedRecord)
+  const updatedData = Object.assign({}, record.data, { name: 'Micro' })
 
+  const updatedRecord = await t.storage.updateRecord('items', updatedData)
+  t.ok(updatedRecord, 'returned the updated record')
+
+  t.equal(updatedRecord.data.name, 'Micro', "updated the DJ's name to Micro")
   t.equal(updatedRecord.startGeneration, generation, 'startGeneration knows where time started')
   t.equal(updatedRecord.generation, generation + 1, 'generation moved forward in time')
   t.ok(record.updatedAt < updatedRecord.updatedAt, 'updatedAt was updated')
 })
 
-test('records delete', async t => {
-  const record = await storage.createRecord('items', { id: 'not-for-long' })
+test('records delete', ['storage'], async t => {
+  await createItemsStore(t.storage)
+
+  const record = await t.storage.createRecord('items', { id: 'not-for-long' })
   t.ok(record, 'created a temporary record')
 
-  await storage.deleteRecord('items', 'not-for-long')
+  await t.storage.deleteRecord('items', 'not-for-long')
 
-  const notFound = await storage.getRecord('items', 'not-for-long')
+  const notFound = await t.storage.getRecord('items', 'not-for-long')
   t.notOk(notFound)
 })
 
-test('indexes create', async t => {
-  const createdIndex = await storage.createIndex({ recordStoreName: 'items', keyPath: 'shelf' })
-  const fetchedIndex = await storage.getIndex('items', 'shelf')
+function createShelfIndex (storage) {
+  return storage.createIndex({ recordStoreName: 'items', keyPath: 'shelf' })
+}
+
+test('indexes create', ['storage'], async t => {
+  await createItemsStore(t.storage)
+
+  const createdIndex = await createShelfIndex(t.storage)
+  const fetchedIndex = await t.storage.getIndex('items', 'shelf')
 
   t.deepEqual(createdIndex, fetchedIndex, 'created and fetched are the same')
 })
 
-test('indexes all', async t => {
-  const indexes = await storage.getAllIndexes('items')
+test('indexes all', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createShelfIndex(t.storage)
+
+  const indexes = await t.storage.getAllIndexes('items')
 
   t.equal(indexes.length, 1, 'there is an index')
   t.equal(indexes[0].keyPath, 'shelf', 'there is an index on shelf')
 })
 
-test('indexes get', async t => {
-  const index = await storage.getIndex('items', 'shelf')
+test('indexes get', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createShelfIndex(t.storage)
+
+  const index = await t.storage.getIndex('items', 'shelf')
 
   t.equal(index.keyPath, 'shelf')
   t.equal(index.isUnique, false)
 })
 
-test('existing records are indexed', async t => {
-  const records = await storage.getAllRecordsByIndex('items', 'shelf')
+test('existing records are indexed', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createAllTestRecords(t.storage)
+  await createShelfIndex(t.storage)
+
+  const records = await t.storage.getAllRecordsByIndex('items', 'shelf')
   t.equal(records.length, 4)
 })
 
-test('new records are indexed', async t => {
-  const newRecord = await storage.createRecord('items', {
-    id: 'batman',
-    shelf: 'bottom'
-  })
+test('new records are indexed', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createShelfIndex(t.storage)
+  await createTestRecord(t.storage, 'batman')
 
-  const indexedRecords = await storage.getAllRecordsByIndex('items', 'shelf')
-  const batman = indexedRecords.find(record => record.id === newRecord.id)
+  const indexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const batman = indexedRecords.find(record => record.key === 'batman')
 
   t.ok(batman, 'found batman in the shelf index')
 })
 
-test('updated records update their indexes', async t => {
-  const updatedBatman = await storage.updateRecord('items', { id: 'batman', noShelf: 'anymore' })
+test('updated records update their indexes', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createShelfIndex(t.storage)
+  await createTestRecord(t.storage, 'batman')
 
-  const indexedRecords = await storage.getAllRecordsByIndex('items', 'shelf')
-  const noBatman = indexedRecords.find(record => record.id === updatedBatman.id)
+  await t.storage.updateRecord('items', { id: 'batman', shelf: null })
+
+  const indexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const noBatman = indexedRecords.find(record => record.key === 'batman')
 
   t.notOk(noBatman, 'batman was removed from the shelf index')
 })
 
-test('deleted records are deleted from the indexes', async t => {
-  const indexedRecords = await storage.getAllRecordsByIndex('items', 'shelf')
+test('deleted records are deleted from the indexes', ['storage'], async t => {
+  await createItemsStore(t.storage)
+  await createShelfIndex(t.storage)
+  await createAllTestRecords(t.storage)
+
+  const indexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
   const future = indexedRecords.find(record => record.key === 'future')
   t.ok(future, 'future is currently in the index')
 
-  const result = await storage.deleteRecord('items', 'future')
+  const result = await t.storage.deleteRecord('items', 'future')
   t.ok(result, 'future has been deleted')
 
-  const newestIndexedRecords = await storage.getAllRecordsByIndex('items', 'shelf')
+  const newestIndexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
   const noFuture = newestIndexedRecords.find(record => record.key === 'future')
   t.notOk(noFuture, 'future has been removed from the indexes')
 })
 
-// test('filter indexed records')
+// test('filter indexed records', t => {
+//   t.test('only', async t => {
+//
+//   })
+// })

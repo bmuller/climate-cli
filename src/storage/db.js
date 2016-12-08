@@ -1,5 +1,5 @@
 import sqlite3 from 'sqlite3'
-import { nullLogger } from '../null-logger'
+import { nullLogger } from '../loggers'
 
 const verboseSqlite3 = sqlite3.verbose()
 
@@ -120,38 +120,20 @@ class DB {
     return result.changes
   }
 
-  rawSelect (type, statement, ...params) {
-    return new Promise((resolve, reject) => {
-      try {
-        this._logger.debug('sql select', statement, params)
-        this._db[type](statement, ...params, (err, result) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(result)
-          }
-        })
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
-
   async get (table, statement, ...params) {
     statement = `SELECT * FROM ${table} ${statement}`
-    return this.rawSelect('get', statement, ...params)
+    return rawSelect(this._db, this._logger, 'get', statement, ...params)
   }
 
   async all (table, statement, ...params) {
     statement = `SELECT * FROM ${table} ${statement}`
-    return this.rawSelect('all', statement, ...params)
+    return rawSelect(this._db, this._logger, 'all', statement, ...params)
   }
 
   each (table, statement, ...params) {
     const cb = params.pop()
     statement = `SELECT * FROM ${table} ${statement}`
 
-    let promises = []
     let eachErr = null
 
     return new Promise((resolve, reject) => {
@@ -161,15 +143,18 @@ class DB {
           if (err) {
             eachErr = err
           } else {
-            promises.push(Promise.resolve(cb(row)))
+            try {
+              cb(row)
+            } catch (e) {
+              eachErr = e
+              throw e
+            }
           }
         }, (err, numberOfRows) => {
           if (err || eachErr) {
             reject(err || eachErr)
           } else {
-            Promise.all(promises)
-              .then(() => resolve(numberOfRows))
-              .catch(e => reject(e))
+            resolve(numberOfRows)
           }
         })
       } catch (e) {
@@ -177,6 +162,23 @@ class DB {
       }
     })
   }
+}
+
+function rawSelect (db, logger, type, statement, ...params) {
+  return new Promise((resolve, reject) => {
+    try {
+      logger.debug('sql select', statement, params)
+      db[type](statement, ...params, (err, result) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(result)
+        }
+      })
+    } catch (e) {
+      reject(e)
+    }
+  })
 }
 
 async function transaction (type, db, cb) {

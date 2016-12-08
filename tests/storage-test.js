@@ -249,9 +249,3 @@ test('deleted records are deleted from the indexes', ['storage'], async t => {
   const noFuture = newestIndexedRecords.find(record => record.key === 'future')
   t.notOk(noFuture, 'future has been removed from the indexes')
 })
-
-// test('filter indexed records', t => {
-//   t.test('only', async t => {
-//
-//   })
-// })

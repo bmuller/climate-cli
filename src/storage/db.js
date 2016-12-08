@@ -19,6 +19,7 @@ export function open (file = ':memory:', logger = nullLogger) {
     })
 
     db.on('error', err => {
+      console.error('db error', err)
       if (!isOpen) { reject(err) }
     })
   })

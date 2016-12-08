@@ -31,8 +31,8 @@
   "scripts": {
     "prepublish": "npm run compile",
     "compile": "babel -d dist/ src/",
-    "lint": "standard -v src/* tests/*",
-    "test": "npm run lint && blue-tape -r babel-register tests/**/*_test.js",
+    "lint": "standard -v src/**/* tests/**/*",
+    "test": "npm run lint && blue-tape -r babel-register tests/**/*-test.js",
     "doc": "node -r babel-register doc/index.js",
     "serve": "node -r babel-register serve.js"
   },

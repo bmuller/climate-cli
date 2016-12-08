@@ -1,12 +1,12 @@
 import EventEmitter from 'events'
 import test from 'blue-tape'
-import { setupStorage } from '../storage'
+import { setupStorage } from '../src/storage'
 
-const _testLogger = {
-  debug: (...msg) => console.log(...msg),
-  error: (...msg) => console.error(...msg),
-  info: (...msg) => console.log(...msg)
-}
+// const _testLogger = {
+//   debug: (...msg) => console.log(...msg),
+//   error: (...msg) => console.error(...msg),
+//   info: (...msg) => console.log(...msg)
+// }
 const testLogger = undefined
 
 const bus = new EventEmitter()

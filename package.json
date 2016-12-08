@@ -2,12 +2,13 @@
   "name": "climate-cli",
   "version": "0.0.1",
   "description": "Command-line interface to climate",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": {
     "url": "https://github.com/bmuller/climate-cli.git",
     "type": "git"
   },
   "devDependencies": {
+    "babel-cli": "^6.18.0",
     "babel-plugin-transform-async-to-generator": "^6.16.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
     "babel-register": "^6.18.0",
@@ -25,11 +26,13 @@
     "sqlite3": "^3.1.8"
   },
   "bin": {
-    "climate": "./bin/cmd.js"
+    "climate": "./bin/cli.js"
   },
   "scripts": {
-    "test": "npm run lint && NODE_ENV=test blue-tape -r babel-register tests/**/*.js",
-    "lint": "standard `git ls-files *.js`",
+    "prepublish": "npm run compile",
+    "compile": "babel -d dist/ src/",
+    "lint": "standard -v ./src",
+    "test": "npm run lint && blue-tape -r babel-register tests/**/*_test.js",
     "doc": "node -r babel-register doc/index.js",
     "serve": "node -r babel-register serve.js"
   },
@@ -37,6 +40,7 @@
     "name": "Brian Muller",
     "url": "http://findingscience.com"
   },
+  "files": [ "./files" ],
   "license": "MIT",
   "keywords": [
     "cloud",

@@ -1,3 +1,4 @@
+import process from 'process'
 import sqlite3 from 'sqlite3'
 import { nullLogger } from '../loggers'
 
@@ -14,13 +15,15 @@ export function open (file = ':memory:', logger = nullLogger) {
     })
 
     db.on('open', () => {
-      resolve(new DB(db, logger))
+      process.nextTick(() => resolve(new DB(db, logger)))
       isOpen = true
     })
 
     db.on('error', err => {
       console.error('db error', err)
-      if (!isOpen) { reject(err) }
+      if (!isOpen) {
+        process.nextTick(() => reject(err))
+      }
     })
   })
 }
@@ -39,9 +42,9 @@ class DB {
     return new Promise((resolve, reject) => {
       this._db.close(err => {
         if (err) {
-          reject(err)
+          process.nextTick(() => reject(err))
         } else {
-          resolve()
+          process.nextTick(() => resolve())
         }
       })
     })
@@ -57,11 +60,11 @@ class DB {
         this._logger.debug('sql run', statement, params)
         this._db.run(statement, ...params, function (err) {
           if (err) {
-            reject(err)
+            process.nextTick(() => reject(err))
           } else {
             const changes = this.changes // may be undefined
             const lastID = this.lastID // may be undefined
-            resolve({ changes, lastID })
+            process.nextTick(() => resolve({ changes, lastID }))
           }
         })
       } catch (e) {
@@ -153,9 +156,9 @@ class DB {
           }
         }, (err, numberOfRows) => {
           if (err || eachErr) {
-            reject(err || eachErr)
+            process.nextTick(() => reject(err || eachErr))
           } else {
-            resolve(numberOfRows)
+            process.nextTick(() => resolve(numberOfRows))
           }
         })
       } catch (e) {
@@ -171,9 +174,9 @@ function rawSelect (db, logger, type, statement, ...params) {
       logger.debug('sql select', statement, params)
       db[type](statement, ...params, (err, result) => {
         if (err) {
-          reject(err)
+          process.nextTick(() => reject(err))
         } else {
-          resolve(result)
+          process.nextTick(() => resolve(result))
         }
       })
     } catch (e) {

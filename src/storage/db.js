@@ -51,7 +51,7 @@ class DB {
   }
 
   exclusiveLock (cb) {
-    return transaction('EXCLUSIVE TRANSACTION', this._db, cb)
+    return transaction('EXCLUSIVE TRANSACTION', this, cb)
   }
 
   run (statement, ...params) {
@@ -188,7 +188,7 @@ function rawSelect (db, logger, type, statement, ...params) {
 async function transaction (type, db, cb) {
   try {
     await db.run(`BEGIN ${type}`)
-    const result = await Promise.resolve(cb())
+    const result = await cb()
     await db.run('COMMIT')
     return result
   } catch (e) {

@@ -29,7 +29,7 @@ export class Climate {
     routes(app, storage)
 
     // temporarily serve climate sdk js
-    const baboptions = {presets: ['es2015'], plugins: ["transform-es2015-modules-commonjs", "transform-async-to-generator"]}
+    const baboptions = {presets: ['es2015'], plugins: ['transform-es2015-modules-commonjs', 'transform-async-to-generator']}
     const browsoptions = {transform: [['babelify', baboptions]]}
     const sdkjspath = path.join(__dirname, '/sdk/index.js')
     app.get('/sdk/climate.js', browserify(sdkjspath, browsoptions))

@@ -1,6 +1,6 @@
 import { Identity } from './identity'
 
-class Climate {
+export class Climate {
   constructor (appId, domain) {
     this.appId = appId
     this.domain = domain

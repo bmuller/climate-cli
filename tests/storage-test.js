@@ -205,7 +205,7 @@ test('existing records are indexed', ['storage'], async t => {
   await createAllTestRecords(t.storage)
   await createShelfIndex(t.storage)
 
-  const records = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const records = await t.storage.getRecordsByIndex('items', 'shelf')
   t.equal(records.length, 4)
 })
 
@@ -214,7 +214,7 @@ test('new records are indexed', ['storage'], async t => {
   await createShelfIndex(t.storage)
   await createTestRecord(t.storage, 'batman')
 
-  const indexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const indexedRecords = await t.storage.getRecordsByIndex('items', 'shelf')
   const batman = indexedRecords.find(record => record.key === 'batman')
 
   t.ok(batman, 'found batman in the shelf index')
@@ -227,7 +227,7 @@ test('updated records update their indexes', ['storage'], async t => {
 
   await t.storage.updateRecord('items', { id: 'batman', shelf: null })
 
-  const indexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const indexedRecords = await t.storage.getRecordsByIndex('items', 'shelf')
   const noBatman = indexedRecords.find(record => record.key === 'batman')
 
   t.notOk(noBatman, 'batman was removed from the shelf index')
@@ -238,14 +238,14 @@ test('deleted records are deleted from the indexes', ['storage'], async t => {
   await createShelfIndex(t.storage)
   await createAllTestRecords(t.storage)
 
-  const indexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const indexedRecords = await t.storage.getRecordsByIndex('items', 'shelf')
   const future = indexedRecords.find(record => record.key === 'future')
   t.ok(future, 'future is currently in the index')
 
   const result = await t.storage.deleteRecord('items', 'future')
   t.ok(result, 'future has been deleted')
 
-  const newestIndexedRecords = await t.storage.getAllRecordsByIndex('items', 'shelf')
+  const newestIndexedRecords = await t.storage.getRecordsByIndex('items', 'shelf')
   const noFuture = newestIndexedRecords.find(record => record.key === 'future')
   t.notOk(noFuture, 'future has been removed from the indexes')
 })

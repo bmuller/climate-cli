@@ -60,7 +60,7 @@ export async function setupStorage (file, bus, logger = nullLogger) {
       CREATE TABLE IF NOT EXISTS indexedRecords (
         indexId INTEGER NOT NULL REFERENCES indexes(id),
         recordId INTEGER NOT NULL REFERENCES records(id),
-        value TEXT NOT NULL,
+        key TEXT NOT NULL,
         createdAt REAL NOT NULL DEFAULT ((julianday('now') - 2440587.5) * 86400.0) CHECK (typeof(createdAt) = 'real'),
         updatedAt REAL NOT NULL DEFAULT ((julianday('now') - 2440587.5) * 86400.0) CHECK (typeof(createdAt) = 'real')
       )

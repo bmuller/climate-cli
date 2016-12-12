@@ -1,6 +1,6 @@
 import { nullLogger } from '../loggers'
 import * as utils from './utils'
-import { KeyRange, keyRangeToSQL } from './key-range'
+import { KeyRange } from './key-range'
 
 export class Storage {
   constructor (db, bus, logger = nullLogger) {
@@ -209,16 +209,23 @@ export class Storage {
       .filter(change => change.type !== 'null') // remove noop changes
   }
 
-  async getAllRecordsByIndex (recordStoreName, keyPath, range = KeyRange.any) {
+  async getRecordsByIndex (recordStoreName, keyPath, range = KeyRange.any) {
     const index = await this.getIndex(recordStoreName, keyPath)
 
     if (!index) {
       throw new Error(`${keyPath} is not an indexed keyPath for ${recordStoreName}`)
     }
 
-    const [innerSQL, ...params] = keyRangeToSQL(index, range)
+    const params = KeyRange.toSQL(index, range)
+    const records = await this._db.all('records', ...params)
+    return records.map(utils.formatRecord)
+  }
 
-    const records = await this._db.all('records', `WHERE id IN (${innerSQL})`, ...params)
+  async getRecordsByKey (recordStoreName, range = KeyRange.any) {
+    const store = await this.getRecordStore(recordStoreName)
+
+    const params = KeyRange.toSQL(store, range)
+    const records = await this._db.all('records', ...params)
     return records.map(utils.formatRecord)
   }
 

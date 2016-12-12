@@ -20,9 +20,9 @@ export async function indexRecord (storage, record) {
 
 // TODO: bad name
 export async function indexRecordForIndex (storage, record, index) {
-  const value = record.data[index.keyPath] // TODO: support nested keys (foo.bar)
+  const key = record.data[index.keyPath] // TODO: support nested keys (foo.bar)
 
-  if (value === undefined || value === null) {
+  if (key === undefined || key === null) {
     await storage._db.delete('indexedRecords', 'WHERE recordId = ? AND indexId = ?', record.id, index.id)
   } else {
     // TODO: test for uniqueness if isUnique
@@ -30,7 +30,7 @@ export async function indexRecordForIndex (storage, record, index) {
     await storage._db.insert('indexedRecords', {
       indexId: index.id,
       recordId: record.id,
-      value
+      key
     })
   }
 }

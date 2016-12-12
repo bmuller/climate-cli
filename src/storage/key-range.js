@@ -93,27 +93,57 @@ KeyRange.betweenIncludingRight = (left, right) => {
   return KeyRange.bound(left, right, false, true)
 }
 
-const anySQL = 'SELECT recordId from indexedRecords WHERE indexId = ?'
+const baseSQLForIndex = 'SELECT recordId from indexedRecords WHERE indexId = ?'
+Object.freeze(baseSQLForIndex)
 
-export function keyRangeToSQL (index, range) {
+const baseSQLForRecordStore = 'WHERE recordStoreName = ?'
+Object.freeze(baseSQLForRecordStore)
+
+KeyRange.toSQL = function (indexOrStore, range) {
+  if (indexOrStore.name) {
+    return keyRangeForRecordStoreToSQL(indexOrStore, range)
+  } else if (indexOrStore.recordStoreName) {
+    return keyRangeForIndexToSQL(indexOrStore, range)
+  } else {
+    throw new Error('Only generates SQL for indexes or record stores')
+  }
+}
+
+function keyRangeForIndexToSQL (index, range) {
   if (range === KeyRange.any) {
-    return [anySQL, index.id]
-  } else if (range.lowerBound === range.upperBound) {
-    const sql = `${anySQL} AND value = ?`
-    return [sql, index.id, range.lowerBound.value]
+    return [`WHERE id IN (${baseSQLForIndex})`, index.id]
+  } else {
+    const [andSQL, ...values] = keyRangeToSQL(range)
+    return [`WHERE id IN (${baseSQLForIndex} ${andSQL})`, index.id, ...values]
+  }
+}
+
+function keyRangeForRecordStoreToSQL (store, range) {
+  if (range === KeyRange.any) {
+    return [baseSQLForRecordStore, store.name]
+  } else {
+    const [andSQL, ...values] = keyRangeToSQL(range)
+    return [`${baseSQLForRecordStore} ${andSQL}`, store.name, ...values]
+  }
+}
+
+function keyRangeToSQL (range) {
+  if (range.lowerBound === range.upperBound) {
+    const sql = 'AND key = ?'
+    return [sql, range.lowerBound.value]
   } else if (range.lowerBound === KeyRangeBound.any) {
     const upperOperator = operatorForKeyBound('>', range.upperBound)
-    const sql = `${anySQL} AND ? ${upperOperator} value`
-    return [sql, index.id, range.upperBound.value]
+    const sql = `AND ? ${upperOperator} key`
+    return [sql, range.upperBound.value]
   } else if (range.upperBound === KeyRangeBound.any) {
     const lowerOperator = operatorForKeyBound('<', range.lowerBound)
-    const sql = `${anySQL} AND ? ${lowerOperator} value`
-    return [sql, index.id, range.lowerBound.value]
+    const sql = `AND ? ${lowerOperator} key`
+    return [sql, range.lowerBound.value]
   } else {
     const lowerOperator = operatorForKeyBound('<', range.lowerBound)
     const upperOperator = operatorForKeyBound('>', range.upperBound)
-    const sql = `${anySQL} AND ? ${lowerOperator} value AND ? ${upperOperator} value`
-    return [sql, index.id, range.lowerBound.value, range.upperBound.value]
+    const sql = `AND ? ${lowerOperator} key AND ? ${upperOperator} key`
+    return [sql, range.lowerBound.value, range.upperBound.value]
   }
 }
 

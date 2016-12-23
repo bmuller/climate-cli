@@ -3,6 +3,14 @@ import { nullLogger } from '../loggers'
 import { Storage } from './storage-class'
 
 export async function setupStorage (file, bus, logger = nullLogger) {
+  if (file === undefined) {
+    throw new Error('must supply filename for sqlite database')
+  }
+
+  if (bus === undefined) {
+    throw new Error('must provide a message bus')
+  }
+
   const db = await open(file, logger)
 
   await db.exclusiveLock(async () => {

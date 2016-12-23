@@ -40,13 +40,20 @@ program
 
 program.parse(process.argv)
 
-switch(cmd) {
+switch (cmd) {
   case 'serve':
     cli.serve()
+    break
   case 'migrate':
     cli.migrate()
+      .catch(e => {
+        console.error('There was an error migrating:', e)
+        process.exit(1)
+      })
+    break
   case 'init':
     console.error('not yet!')
+    break
   default:
     program.help()
 }

@@ -5,6 +5,7 @@ import EventEmitter from 'events'
 import path from 'path'
 
 const bus = new EventEmitter()
+const dbFilename = './climate.db'
 
 export class Climate {
   constructor () {
@@ -14,7 +15,7 @@ export class Climate {
   async serve () {
     const storage = await setupStorage(bus)
 
-    await setupTasks(bus)
+    await setupTasks(dbFilename, bus)
 
     const express = require('express')
     const compression = require('compression')
@@ -37,5 +38,10 @@ export class Climate {
     app.listen(3000)
 
     console.log('listening on 127.0.0.1:3000')
+  }
+
+  async migrate () {
+    const storage = await setupStorage(dbFilename, bus)
+    await storage.migrate()
   }
 }

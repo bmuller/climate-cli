@@ -229,4 +229,8 @@ export class Storage {
       return cb(record)
     })
   }
+
+  async migrate () {
+    throw new Error('not implemented')
+  }
 }

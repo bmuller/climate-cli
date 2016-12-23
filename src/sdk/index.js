@@ -1,8 +1,4 @@
-/*
-  Usage:
-  var cli = Climate("appid123123", "awesome.climate.build")
-  cli.identity.showLogin()
-*/
+import { Identity } from './identity'
 
 export class Climate {
   constructor (appId, domain) {
@@ -10,12 +6,4 @@ export class Climate {
     this.domain = domain
     this.identity = new Identity(this)
   }
-}
-
-class Identity {
-  constructor (climate) {
-    this.climate = climate
-  }
-
-  showLogin () {}
 }

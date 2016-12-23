@@ -14,8 +14,17 @@ program
   .alias('s')
   .description('Run the development server')
   .option('-p, --port <port>', 'The port to run on')
-  .action(function (options) {
+  .action(options => {
     cmd = 'serve'
+    opts = options
+  })
+
+program
+  .command('migrate')
+  .alias('m')
+  .description('Run through the newest migrations locally')
+  .action(options => {
+    cmd = 'migrate'
     opts = options
   })
 
@@ -23,7 +32,7 @@ program
   .command('init <name>')
   .alias('i')
   .description('Initialize a new project')
-  .action(function (name, options) {
+  .action((name, options) => {
     cmd = 'init'
     opts = options
     opts.name = name
@@ -31,10 +40,13 @@ program
 
 program.parse(process.argv)
 
-if (cmd === 'serve') {
-  cli.serve()
-} else if (cmd === 'init') {
-  console.log('not yet!')
-} else {
-  program.help()
+switch(cmd) {
+  case 'serve':
+    cli.serve()
+  case 'migrate':
+    cli.migrate()
+  case 'init':
+    console.error('not yet!')
+  default:
+    program.help()
 }

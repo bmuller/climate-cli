@@ -17,7 +17,7 @@ async function setup (t) {
 test('primary key equalTo', ['storage'], async t => {
   await setup(t)
 
-  const range = KeyRange.equalTo('2')
+  const range = KeyRange.equalTo(2)
   const records = await t.storage.getRecordsByKey('letters', range)
 
   t.equal(records.length, 1, 'one record has the id 2')
@@ -25,7 +25,7 @@ test('primary key equalTo', ['storage'], async t => {
   t.equal(records[0].data.letter, 'b', 'record 2 is b')
 })
 
-test.only('primary key lessThan', ['storage'], async t => {
+test('primary key lessThan', ['storage'], async t => {
   await setup(t)
 
   const range = KeyRange.lessThan(4)

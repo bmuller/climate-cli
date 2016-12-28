@@ -1,3 +1,5 @@
+import { Key } from './key'
+
 const nameRegexp = /^[a-zA-Z][a-zA-Z0-9-_]+$/
 
 export function now () {
@@ -20,17 +22,20 @@ export async function indexRecord (storage, record) {
 
 // TODO: bad name
 export async function indexRecordForIndex (storage, record, index) {
-  const key = record.data[index.keyPath] // TODO: support nested keys (foo.bar)
+  let key = record.data[index.keyPath] // TODO: support nested keys (foo.bar)
 
   if (key === undefined || key === null) {
     await storage._db.delete('indexedRecords', 'WHERE recordId = ? AND indexId = ?', record.id, index.id)
   } else {
     // TODO: test for uniqueness if isUnique
     // TODO: implement multi if isMulti
+
+    key = Key.key(key)
+
     await storage._db.insert('indexedRecords', {
       indexId: index.id,
       recordId: record.id,
-      key
+      key: key.encoded()
     })
   }
 }
@@ -84,6 +89,8 @@ export function formatIndex (index) {
 
 export function formatRecord (record) {
   if (record === undefined) { return record }
+
+  record.key = Key.decode(record.key).value
 
   record.data = JSON.parse(record.json)
 

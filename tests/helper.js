@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
 import tape from 'blue-tape'
 import { setupStorage } from '../src/storage'
-import { verboseLogger as logger } from '../src/loggers'
+import { nullLogger as logger } from '../src/loggers'
 
 const testIncludes = {}
 

@@ -4,18 +4,34 @@ class KeyInvalid extends Error {}
 
 export class Key {
   constructor (value) {
+    this.isKey = true
     this.value = value
-    Object.freeze(this)
+    this._encodedValue = undefined
 
     if (!Key.isValid(value)) {
-      throw new KeyInvalid()
+      throw new KeyInvalid(`key ${JSON.stringify(value)} is invalid`)
     }
   }
 
   encoded () {
-    return encodeKey(this.value)
+    if (!this._encodedValue) {
+      this._encodedValue = encodeKey(this.value)
+    }
+    return this._encodedValue
   }
 }
+
+Key.key = value => {
+  if (value === Key.any) {
+    return Key.any
+  } else if (value.isKey) {
+    return value
+  } else {
+    return new Key(value)
+  }
+}
+
+Key.any = Object.create({})
 
 Key.decode = string => {
   const value = decodeKey(string)

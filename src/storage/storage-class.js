@@ -1,6 +1,7 @@
 import { nullLogger } from '../loggers'
 import * as utils from './utils'
 import { KeyRange } from './key-range'
+import { Key } from './key'
 
 export class Storage {
   constructor (db, bus, logger = nullLogger) {
@@ -104,13 +105,13 @@ export class Storage {
 
       await this._db.update('recordStores', { generation }, 'WHERE name = ?', store.name)
 
-      const recordKey = data[store.keyPath]
+      const recordKey = Key.key(data[store.keyPath])
 
       const recordId = await this._db.insert('records', {
         recordStoreName,
         generation,
         startGeneration: generation,
-        key: recordKey,
+        key: recordKey.encoded(),
         json
       })
 
@@ -134,9 +135,9 @@ export class Storage {
 
       await this._db.update('recordStores', { generation }, 'WHERE name = ?', store.name)
 
-      const recordKey = data[store.keyPath]
+      const recordKey = Key.key(data[store.keyPath])
 
-      await this._db.update('records', { generation, json, updatedAt: utils.now() }, 'WHERE recordStoreName = ? AND key = ?', recordStoreName, recordKey)
+      await this._db.update('records', { generation, json, updatedAt: utils.now() }, 'WHERE recordStoreName = ? AND key = ?', recordStoreName, recordKey.encoded())
 
       record = await this.getRecord(recordStoreName, recordKey)
 
@@ -147,6 +148,8 @@ export class Storage {
   }
 
   async markRecordAsDead (recordStoreName, key) {
+    key = Key.key(key)
+
     let record
 
     await this._db.exclusiveLock(async () => {
@@ -156,7 +159,7 @@ export class Storage {
 
       await this._db.update('recordStores', { generation }, 'WHERE name = ?', store.name)
 
-      await this._db.update('records', { generation, deletedAt: utils.now() }, 'WHERE recordStoreName = ? AND key = ?', recordStoreName, key)
+      await this._db.update('records', { generation, deletedAt: utils.now() }, 'WHERE recordStoreName = ? AND key = ?', recordStoreName, key.encoded())
 
       record = this.getRecord(recordStoreName, key)
 
@@ -167,7 +170,9 @@ export class Storage {
   }
 
   async deleteRecord (recordStoreName, key) {
-    const record = await this._db.get('records', 'WHERE recordStoreName = ? AND key = ?', recordStoreName, key)
+    key = Key.key(key)
+
+    const record = await this._db.get('records', 'WHERE recordStoreName = ? AND key = ?', recordStoreName, key.encoded())
 
     await this._db.exclusiveLock(async () => {
       await this._db.delete('records', 'WHERE id = ?', record.id)
@@ -183,7 +188,10 @@ export class Storage {
   }
 
   async getRecord (recordStoreName, key) {
-    const record = await this._db.get('records', 'WHERE recordStoreName = ? AND key = ?', recordStoreName, key)
+    key = Key.key(key)
+
+    const record = await this._db.get('records', 'WHERE recordStoreName = ? AND key = ?', recordStoreName, key.encoded())
+
     return utils.formatRecord(record)
   }
 

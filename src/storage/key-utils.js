@@ -58,10 +58,10 @@ export function encodeKey (key) {
 }
 
 export function decodeKey (encodedKey) {
-  var reader = new HexStringReader(encodedKey)
+  const reader = new HexStringReader(encodedKey)
   const rootArray = [] // one-element root array that contains the result
-  let parentArray = rootArray
   const arrayStack = []
+  let parentArray = rootArray
 
   let type
   let depth
@@ -109,7 +109,6 @@ export function decodeKey (encodedKey) {
   return rootArray[0]
 }
 
-// Utils
 const p16 = 0x10000
 const p32 = 0x100000000
 const p48 = 0x1000000000000
@@ -132,7 +131,7 @@ function ieee754 (number) {
       let p = 0
 
       if (number >= pNeg1022) {
-        var n = number
+        let n = number
 
         while (n < 1) {
           p--
@@ -190,7 +189,7 @@ function encodeNumber (writer, number) {
 
 function decodeNumber (reader) {
   let b = reader.read() | 0
-  let sign = b >> 7
+  let sign = b >> 7 ? false : true // eslint-disable-line
 
   let s = sign ? -1 : 1
 

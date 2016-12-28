@@ -1,27 +1,31 @@
-const any = Object.create({})
+import { Key } from './key'
 
 class KeyRangeBound {
   constructor (value, isIncluded) {
-    this.value = value
+    this.value = Key.key(value)
     this.isIncluded = isIncluded
   }
 
   // TODO: make sure < works with all data types
   isLessThan (value) {
-    return this.value === any ||
-      (this.isIncluded && this.value <= value) ||
-      (this.value < value)
+    value = Key.key(value)
+
+    return this.value === Key.any ||
+      (this.isIncluded && this.value.encoded() <= value.encoded()) ||
+      (this.value.encoded() < value.encoded())
   }
 
   // TODO: make sure > works with all data types
   isGreaterThan (value) {
-    return this.value === any ||
-      (this.isIncluded && this.value >= value) ||
-      (this.value > value)
+    value = Key.key(value)
+
+    return this.value === Key.any ||
+      (this.isIncluded && this.value.encoded() >= value.encoded()) ||
+      (this.value.encoded() > value.encoded())
   }
 }
 
-KeyRangeBound.any = new KeyRangeBound(any)
+KeyRangeBound.any = new KeyRangeBound(Key.any)
 
 export class KeyRange {
   constructor (lowerBound, upperBound) {
@@ -114,7 +118,8 @@ function keyRangeForIndexToSQL (index, range) {
     return [`WHERE id IN (${baseSQLForIndex})`, index.id]
   } else {
     const [andSQL, ...values] = keyRangeToSQL(range)
-    return [`WHERE id IN (${baseSQLForIndex} ${andSQL})`, index.id, ...values]
+    const encodedValues = values.map(value => Key.key(value).encoded())
+    return [`WHERE id IN (${baseSQLForIndex} ${andSQL})`, index.id, ...encodedValues]
   }
 }
 
@@ -123,7 +128,8 @@ function keyRangeForRecordStoreToSQL (store, range) {
     return [baseSQLForRecordStore, store.name]
   } else {
     const [andSQL, ...values] = keyRangeToSQL(range)
-    return [`${baseSQLForRecordStore} ${andSQL}`, store.name, ...values]
+    const encodedValues = values.map(value => Key.key(value).encoded())
+    return [`${baseSQLForRecordStore} ${andSQL}`, store.name, ...encodedValues]
   }
 }
 

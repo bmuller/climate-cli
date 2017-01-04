@@ -34,6 +34,9 @@ export class Climate {
     const sdkjspath = path.join(__dirname, '/sdk/index.js')
     app.get('/sdk/climate.js', browserify(sdkjspath, browsoptions))
 
+    // static files used by the SDK and should be hosted by the api - like the login form
+    app.use('/static', express.static(path.join(__dirname, '..', 'static')))
+
     app.listen(3000)
 
     console.log('listening on 127.0.0.1:3000')

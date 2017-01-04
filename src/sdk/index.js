@@ -6,4 +6,12 @@ export class Climate {
     this.domain = domain
     this.identity = new Identity(this)
   }
+
+  staticClimateURL (fname) {
+    return this.domain + '/static/' + fname
+  }
+}
+
+window.Climate = function (appId, domain) {
+  return new Climate(appId, domain)
 }

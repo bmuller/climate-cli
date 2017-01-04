@@ -14,6 +14,7 @@ program
   .alias('s')
   .description('Run the development server')
   .option('-p, --port <port>', 'The port to run on')
+  .option('-c, --config <folder>', 'The folder with config files')
   .action(function (options) {
     cmd = 'serve'
     opts = options
@@ -32,7 +33,7 @@ program
 program.parse(process.argv)
 
 if (cmd === 'serve') {
-  cli.serve()
+  cli.serve(opts)
 } else if (cmd === 'init') {
   console.log('not yet!')
 } else {

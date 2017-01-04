@@ -11,7 +11,7 @@ export class Climate {
     this.version = '0.0.1'
   }
 
-  async serve () {
+  async serve (options) {
     const storage = await setupStorage(bus)
 
     await setupTasks(bus)
@@ -21,12 +21,16 @@ export class Climate {
     const bodyParser = require('body-parser')
     const browserify = require('browserify-middleware')
     const app = express()
+    const config = {
+      port: options.port || '3210',
+      configDir: options.config || './config'
+    }
 
     app.use(compression())
     app.use(bodyParser.urlencoded({extended: false}))
     app.use(bodyParser.json())
 
-    routes(app, storage)
+    routes(app, storage, config)
 
     // temporarily serve climate sdk js
     const baboptions = {presets: ['es2015'], plugins: ['transform-es2015-modules-commonjs', 'transform-async-to-generator']}
@@ -37,8 +41,10 @@ export class Climate {
     // static files used by the SDK and should be hosted by the api - like the login form
     app.use('/static', express.static(path.join(__dirname, '..', 'static')))
 
-    app.listen(3000)
+    app.listen(config.port)
 
-    console.log('listening on 127.0.0.1:3000')
+    console.log('listening on 127.0.0.1:' + config.port)
+    console.log('Add this to get access to the climate SDK:')
+    console.log('<script src="//localhost:' + config.port + '/sdk/climate.js"></script>')
   }
 }

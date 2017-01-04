@@ -2,6 +2,7 @@
 const program = require('commander')
 const { Climate } = require('../dist')
 const cli = new Climate()
+require('dotenv').config()
 
 var cmd, opts
 
